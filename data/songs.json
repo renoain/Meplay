@@ -1,0 +1,244 @@
+{
+  "songs": [
+    {
+      "id": "song-1",
+      "title": "All I Need",
+      "artist": "Radiohead",
+      "album": "In Rainbows",
+      "file_path": "assets/audio/All I Need.mp3",
+      "cover_path": "assets/images/All I Need.jpg",
+      "duration": "3:48",
+      "genre": "Alternative Rock"
+    },
+    {
+      "id": "song-2",
+      "title": "Back to the Old House",
+      "artist": "The Smiths",
+      "album": "Louder Than Bombs",
+      "file_path": "assets/audio/Back to the Old House - 2011 Remaster.mp3",
+      "cover_path": "assets/images/All I Need.jpg",
+      "duration": "2:08",
+      "genre": "Indie Rock"
+    },
+    {
+      "id": "song-3",
+      "title": "Be Quiet and Drive",
+      "artist": "Deftones",
+      "album": "Around the Fur",
+      "file_path": "assets/audio/Be Quiet and Drive.mp3",
+      "cover_path": "assets/images/Be Quiet and Drive.jpg",
+      "duration": "4:33",
+      "genre": "Alternative Metal"
+    },
+    {
+      "id": "song-4",
+      "title": "Black Star",
+      "artist": "Radiohead",
+      "album": "The Bends",
+      "file_path": "assets/audio/Black Star.mp3",
+      "cover_path": "assets/images/Black Star.jpg",
+      "duration": "4:07",
+      "genre": "Alternative Rock"
+    },
+    {
+      "id": "song-5",
+      "title": "Blue Hair",
+      "artist": "TV Girl",
+      "album": "Death of a Party Girl",
+      "file_path": "assets/audio/Blue Hair.mp3",
+      "cover_path": "assets/images/All I Need.jpg",
+      "duration": "3:37",
+      "genre": "Indie Pop"
+    },
+    {
+      "id": "song-6",
+      "title": "Cherry Waves",
+      "artist": "Deftones",
+      "album": "Saturday Night Wrist",
+      "file_path": "assets/audio/Cherry Waves.mp3",
+      "cover_path": "assets/images/Cherry Waves.jpg",
+      "duration": "5:18",
+      "genre": "Alternative Metal"
+    },
+    {
+      "id": "song-7",
+      "title": "Heart-Shaped Box",
+      "artist": "Nirvana",
+      "album": "In Utero",
+      "file_path": "assets/audio/Heart-Shaped Box.mp3",
+      "cover_path": "assets/images/Heart-Shaped Box.jpg",
+      "duration": "4:41",
+      "genre": "Grunge"
+    },
+    {
+      "id": "song-8",
+      "title": "High and Dry",
+      "artist": "Radiohead",
+      "album": "The Bends",
+      "file_path": "assets/audio/High and Dry.mp3",
+      "cover_path": "assets/images/High and Dry.jpg",
+      "duration": "4:17",
+      "genre": "Alternative Rock"
+    },
+    {
+      "id": "song-9",
+      "title": "K",
+      "artist": "Cigarettes After Sex",
+      "album": "Cigarettes After Sex",
+      "file_path": "assets/audio/K..mp3",
+      "cover_path": "assets/images/K..jpg",
+      "duration": "5:19",
+      "genre": "Dream Pop"
+    },
+    {
+      "id": "song-10",
+      "title": "Like a Tattoo",
+      "artist": "Sade",
+      "album": "Love Deluxe",
+      "file_path": "assets/audio/Like a Tattoo.mp3",
+      "cover_path": "assets/images/Like a Tattoo.jpg",
+      "duration": "3:38",
+      "genre": "R&B"
+    },
+    {
+      "id": "song-11",
+      "title": "Linger",
+      "artist": "The Cranberries",
+      "album": "Everybody Else Is Doing It, So Why Can't We?",
+      "file_path": "assets/audio/Linger.mp3",
+      "cover_path": "assets/images/Linger.jpg",
+      "duration": "4:34",
+      "genre": "Alternative Rock"
+    },
+    {
+      "id": "song-12",
+      "title": "Misery Business",
+      "artist": "Paramore",
+      "album": "Riot!",
+      "file_path": "assets/audio/Misery Business.mp3",
+      "cover_path": "assets/images/All I Need.jpg",
+      "duration": "3:31",
+      "genre": "Pop Punk"
+    },
+    {
+      "id": "song-13",
+      "title": "My Own Summer",
+      "artist": "Deftones",
+      "album": "Around the Fur",
+      "file_path": "assets/audio/My Own Summer (Shove It).mp3",
+      "cover_path": "assets/images/My Own Summer (Shove It).jpg",
+      "duration": "3:34",
+      "genre": "Alternative Metal"
+    },
+    {
+      "id": "song-14",
+      "title": "Nothing's Gonna Hurt You Baby",
+      "artist": "Cigarettes After Sex",
+      "album": "I.",
+      "file_path": "assets/audio/Nothing_s Gonna Hurt You Baby.mp3",
+      "cover_path": "assets/images/Nothing_s Gonna Hurt You Baby.jpg",
+      "duration": "4:46",
+      "genre": "Dream Pop"
+    },
+    {
+      "id": "song-15",
+      "title": "Reflections",
+      "artist": "The Neighbourhood",
+      "album": "The Neighbourhood",
+      "file_path": "assets/audio/Reflections.mp3",
+      "cover_path": "assets/images/Reflections.jpg",
+      "duration": "4:55",
+      "genre": "Alternative R&B"
+    },
+    {
+      "id": "song-16",
+      "title": "Say Yes To Heaven",
+      "artist": "Lana Del Rey",
+      "album": "Say Yes To Heaven",
+      "file_path": "assets/audio/Say Yes To Heaven.mp3",
+      "cover_path": "assets/images/All I Need.jpg",
+      "duration": "3:29",
+      "genre": "Dream Pop"
+    },
+    {
+      "id": "song-17",
+      "title": "Sextape",
+      "artist": "Deftones",
+      "album": "Diamond Eyes",
+      "file_path": "assets/audio/Sextape.mp3",
+      "cover_path": "assets/images/Sextape.jpg",
+      "duration": "4:02",
+      "genre": "Alternative Metal"
+    },
+    {
+      "id": "song-18",
+      "title": "Snap Out Of It",
+      "artist": "Arctic Monkeys",
+      "album": "AM",
+      "file_path": "assets/audio/Snap Out Of It.mp3",
+      "cover_path": "assets/images/Snap Out Of It.jpg",
+      "duration": "3:13",
+      "genre": "Indie Rock"
+    },
+    {
+      "id": "song-19",
+      "title": "Sunsetz",
+      "artist": "Cigarettes After Sex",
+      "album": "Cigarettes After Sex",
+      "file_path": "assets/audio/Sunsetz.mp3",
+      "cover_path": "assets/images/Sunsetz.jpg",
+      "duration": "4:35",
+      "genre": "Dream Pop"
+    },
+    {
+      "id": "song-20",
+      "title": "Supersonic",
+      "artist": "Fromis_9",
+      "album": "Supersonic",
+      "file_path": "assets/audio/Supersonic.mp3",
+      "cover_path": "assets/images/Supersonic.jpg",
+      "duration": "4:43",
+      "genre": "Kpop"
+    },
+    {
+      "id": "song-21",
+      "title": "The Adults Are Talking",
+      "artist": "The Strokes",
+      "album": "The New Abnormal",
+      "file_path": "assets/audio/The Adults Are Talking.mp3",
+      "cover_path": "assets/images/The Adults Are Talking.jpg",
+      "duration": "5:09",
+      "genre": "Indie Rock"
+    },
+    {
+      "id": "song-22",
+      "title": "普通朋友",
+      "artist": "陶喆",
+      "album": "I'm Ok",
+      "file_path": "assets/audio/普通朋友.mp3",
+      "cover_path": "assets/images/普通朋友.jpg",
+      "duration": "4:38",
+      "genre": "Mandopop"
+    },
+    {
+      "id": "song-23",
+      "title": "U-Turn",
+      "artist": "Mardial, Moneva",
+      "album": "U-Turn",
+      "file_path": "assets/audio/U-Turn.mp3",
+      "cover_path": "assets/images/U-Turn.jpeg",
+      "duration": "3:11",
+      "genre": "EDM"
+    },
+    {
+      "id": "song-24",
+      "title": "body",
+      "artist": "DAYOUNG",
+      "album": "gonna love me, right?",
+      "file_path": "assets/audio/body.mp3",
+      "cover_path": "assets/images/body.jpg",
+      "duration": "2:48",
+      "genre": "EDM"
+    }
+  ]
+}
