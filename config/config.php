@@ -1,50 +1,42 @@
 <?php
-// config/config.php
 session_start();
 
-class Database {
-    private $host = "localhost";
-    private $db_name = "meplay_db";
-    private $username = "root";
-    private $password = "";
-    public $conn;
+// Database configuration
+$host = 'localhost';
+$dbname = 'meplay_db';
+$username = 'root';
+$password = '';
 
-    public function getConnection() {
-        $this->conn = null;
-        try {
-            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
-            $this->conn->exec("set names utf8");
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch(PDOException $exception) {
-            error_log("Database connection error: " . $exception->getMessage());
-        }
-        return $this->conn;
-    }
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Database connection failed: " . $e->getMessage());
+    die("Database connection failed: " . $e->getMessage());
 }
 
-// Check if user is logged in
-function isLoggedIn() {
-    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+// Set default user session untuk testing (HAPUS INI DI PRODUCTION)
+if (!isset($_SESSION['user_id'])) {
+    $_SESSION['user_id'] = 1; // Default user ID
+    $_SESSION['username'] = 'user1';
+    $_SESSION['user_role'] = 'user';
+    $_SESSION['display_name'] = 'User One';
 }
 
-// Check if user is admin
-function isAdmin() {
-    return isLoggedIn() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
-}
-
-// Require authentication
 function requireAuth() {
-    if (!isLoggedIn()) {
+    if (!isset($_SESSION['user_id'])) {
         header('Location: login.php');
-        exit();
+        exit;
     }
+    return true;
 }
 
-// Require admin role
-function requireAdmin() {
-    if (!isAdmin()) {
-        header('Location: index.php');
-        exit();
-    }
+function isAdmin() {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
+function getCurrentUserId() {
+    return $_SESSION['user_id'] ?? null;
 }
 ?>

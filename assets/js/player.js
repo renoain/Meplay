@@ -5,107 +5,179 @@ class AudioPlayer {
     this.volume = 0.7;
     this.isShuffled = false;
     this.repeatMode = "none";
+    this.currentSong = null;
+    this.isLoading = false;
 
     this.setupPlayer();
   }
 
   setupPlayer() {
     this.audio.volume = this.volume;
+    this.audio.preload = "none";
 
     // Control buttons
-    document.getElementById("playPauseBtn").addEventListener("click", () => {
+    document.getElementById("playPauseBtn")?.addEventListener("click", () => {
       this.togglePlay();
     });
 
-    document.getElementById("prevBtn").addEventListener("click", () => {
-      window.mePlayApp.playPrevious();
+    document.getElementById("prevBtn")?.addEventListener("click", () => {
+      if (window.mePlayApp) {
+        window.mePlayApp.playPrevious();
+      }
     });
 
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      window.mePlayApp.playNext();
+    document.getElementById("nextBtn")?.addEventListener("click", () => {
+      if (window.mePlayApp) {
+        window.mePlayApp.playNext();
+      }
     });
 
-    document.getElementById("shuffleBtn").addEventListener("click", () => {
+    document.getElementById("shuffleBtn")?.addEventListener("click", () => {
       this.toggleShuffle();
     });
 
-    document.getElementById("repeatBtn").addEventListener("click", () => {
+    document.getElementById("repeatBtn")?.addEventListener("click", () => {
       this.toggleRepeat();
     });
 
     // Progress bar
-    document
-      .querySelector(".progress-bar-container")
-      .addEventListener("click", (e) => {
+    const progressContainer = document.querySelector(".progress-bar-container");
+    if (progressContainer) {
+      progressContainer.addEventListener("click", (e) => {
         this.seek(e);
       });
+    }
 
     // Volume
-    document.getElementById("volumeControl").addEventListener("input", (e) => {
-      this.setVolume(e.target.value);
-    });
+    const volumeControl = document.getElementById("volumeControl");
+    if (volumeControl) {
+      volumeControl.addEventListener("input", (e) => {
+        this.setVolume(e.target.value);
+      });
+    }
 
     // Add to playlist button
-    document
-      .getElementById("addToPlaylistBtn")
-      .addEventListener("click", () => {
-        if (
-          window.playlistManager &&
-          window.mePlayApp.currentSongIndex !== -1
-        ) {
-          const currentSong =
-            window.mePlayApp.currentTrackList[
-              window.mePlayApp.currentSongIndex
-            ];
-          window.playlistManager.songToAdd = currentSong.id;
-          window.playlistManager.showAddToPlaylistModal(currentSong.id); // KIRIM songId
+    const addToPlaylistBtn = document.getElementById("addToPlaylistBtn");
+    if (addToPlaylistBtn) {
+      addToPlaylistBtn.addEventListener("click", () => {
+        if (this.currentSong && window.mePlayApp) {
+          window.mePlayApp.showAddToPlaylistModal(this.currentSong.id);
         } else {
-          alert("No song is currently playing");
+          window.mePlayApp?.showToast("No song is currently playing", "error");
         }
       });
+    }
+
+    // Queue button
+    const queueBtn = document.getElementById("queueBtn");
+    if (queueBtn) {
+      queueBtn.addEventListener("click", () => {
+        if (window.mePlayApp) {
+          window.mePlayApp.showQueueModal();
+        }
+      });
+    }
 
     // Audio events
     this.audio.addEventListener("timeupdate", () => this.updateProgress());
     this.audio.addEventListener("ended", () => this.handleSongEnd());
     this.audio.addEventListener("loadedmetadata", () => this.updateDuration());
+    this.audio.addEventListener("canplaythrough", () => {
+      this.isLoading = false;
+    });
+    this.audio.addEventListener("loadstart", () => {
+      this.isLoading = true;
+    });
+    this.audio.addEventListener("error", (e) => {
+      console.error("Audio error:", e);
+      this.isLoading = false;
+      this.showPlayError();
+    });
 
     this.audio.addEventListener("play", () => {
       this.isPlaying = true;
-      window.mePlayApp.isPlaying = true;
+      if (window.mePlayApp) window.mePlayApp.isPlaying = true;
       this.updatePlayButton();
     });
 
     this.audio.addEventListener("pause", () => {
       this.isPlaying = false;
-      window.mePlayApp.isPlaying = false;
+      if (window.mePlayApp) window.mePlayApp.isPlaying = false;
       this.updatePlayButton();
     });
   }
 
-  playSong(songPath) {
+  async playSong(songPath, songData = null) {
     if (!songPath) {
       console.error("No song path provided");
       return;
     }
 
-    this.audio.src = songPath;
-    this.audio
-      .play()
-      .then(() => {
-        this.isPlaying = true;
-        window.mePlayApp.isPlaying = true;
-        this.updatePlayButton();
-        console.log("🎵 Now playing:", songPath);
-      })
-      .catch((error) => {
-        console.error("Error playing song:", error);
-        this.showPlayError();
+    try {
+      // Stop current playback first
+      this.audio.pause();
+      this.audio.currentTime = 0;
+
+      this.currentSong = songData;
+      this.isLoading = true;
+
+      console.log("🎵 Loading song:", songPath);
+
+      // Set new source
+      this.audio.src = songPath;
+
+      // Load the audio
+      this.audio.load();
+
+      // Wait for audio to be ready
+      await new Promise((resolve, reject) => {
+        const onCanPlay = () => {
+          this.audio.removeEventListener("canplay", onCanPlay);
+          this.audio.removeEventListener("error", onError);
+          resolve();
+        };
+
+        const onError = (e) => {
+          this.audio.removeEventListener("canplay", onCanPlay);
+          this.audio.removeEventListener("error", onError);
+          reject(new Error("Audio loading failed: " + e.message));
+        };
+
+        this.audio.addEventListener("canplay", onCanPlay, { once: true });
+        this.audio.addEventListener("error", onError, { once: true });
+
+        // Timeout fallback
+        setTimeout(() => {
+          this.audio.removeEventListener("canplay", onCanPlay);
+          this.audio.removeEventListener("error", onError);
+          resolve(); // Continue even if timeout
+        }, 5000);
       });
+
+      // Play the audio
+      await this.audio.play();
+
+      this.isPlaying = true;
+      this.isLoading = false;
+
+      if (window.mePlayApp) {
+        window.mePlayApp.isPlaying = true;
+        window.mePlayApp.updatePlayButton();
+      }
+
+      console.log("✅ Now playing:", songPath);
+    } catch (error) {
+      console.error("❌ Error playing song:", error);
+      this.isLoading = false;
+      this.showPlayError();
+      throw error;
+    }
   }
 
   togglePlay() {
     if (!this.audio.src) {
-      if (window.mePlayApp.songs.length > 0) {
+      // If no song is loaded, play the first song
+      if (window.mePlayApp && window.mePlayApp.songs.length > 0) {
         window.mePlayApp.playTrack(window.mePlayApp.songs, 0, "all");
       }
       return;
@@ -116,21 +188,22 @@ class AudioPlayer {
     } else {
       this.audio.play().catch((error) => {
         console.error("Error playing audio:", error);
+        this.showPlayError();
       });
     }
   }
 
   setVolume(volume) {
-    this.volume = volume;
-    this.audio.volume = volume;
+    this.volume = parseFloat(volume);
+    this.audio.volume = this.volume;
 
     // Update volume icon
     const volumeBtn = document.getElementById("volumeBtn");
     if (volumeBtn) {
       let iconClass = "bi-volume-up-fill";
-      if (volume == 0) {
+      if (this.volume == 0) {
         iconClass = "bi-volume-mute-fill";
-      } else if (volume < 0.5) {
+      } else if (this.volume < 0.5) {
         iconClass = "bi-volume-down-fill";
       }
       volumeBtn.innerHTML = `<i class="bi ${iconClass}"></i>`;
@@ -144,9 +217,10 @@ class AudioPlayer {
     const width = progressContainer.offsetWidth;
     const duration = this.audio.duration;
 
-    if (duration) {
+    if (duration && !isNaN(duration)) {
       const seekTime = (clickX / width) * duration;
       this.audio.currentTime = seekTime;
+      console.log("⏩ Seeking to:", this.formatTime(seekTime));
     }
   }
 
@@ -154,15 +228,24 @@ class AudioPlayer {
     const current = this.audio.currentTime;
     const duration = this.audio.duration;
 
-    if (duration) {
+    if (duration && !isNaN(duration)) {
       const percent = (current / duration) * 100;
-      document.getElementById("progressFill").style.width = percent + "%";
-      document.getElementById("currentTime").textContent =
-        this.formatTime(current);
+      const progressFill = document.getElementById("progressFill");
+      const currentTime = document.getElementById("currentTime");
+
+      if (progressFill) {
+        progressFill.style.width = percent + "%";
+      }
+
+      if (currentTime) {
+        currentTime.textContent = this.formatTime(current);
+      }
 
       if (!this.durationSet) {
-        document.getElementById("duration").textContent =
-          this.formatTime(duration);
+        const durationEl = document.getElementById("duration");
+        if (durationEl) {
+          durationEl.textContent = this.formatTime(duration);
+        }
       }
     }
   }
@@ -170,24 +253,31 @@ class AudioPlayer {
   updateDuration() {
     const duration = this.audio.duration;
     if (duration && !isNaN(duration)) {
-      document.getElementById("duration").textContent =
-        this.formatTime(duration);
+      const durationEl = document.getElementById("duration");
+      if (durationEl) {
+        durationEl.textContent = this.formatTime(duration);
+      }
       this.durationSet = true;
     }
   }
 
   handleSongEnd() {
+    console.log("🎵 Song ended");
     switch (this.repeatMode) {
       case "one":
         this.audio.currentTime = 0;
         this.audio.play();
         break;
       case "all":
-        window.mePlayApp.playNext();
+        if (window.mePlayApp) {
+          window.mePlayApp.playNext();
+        }
         break;
       case "none":
       default:
-        window.mePlayApp.playNext();
+        if (window.mePlayApp) {
+          window.mePlayApp.playNext();
+        }
         break;
     }
   }
@@ -204,6 +294,10 @@ class AudioPlayer {
         shuffleBtn.classList.remove("active");
         shuffleBtn.style.color = "";
       }
+    }
+
+    if (window.mePlayApp) {
+      window.mePlayApp.isShuffled = this.isShuffled;
     }
 
     console.log("🔀 Shuffle:", this.isShuffled ? "ON" : "OFF");
@@ -262,7 +356,7 @@ class AudioPlayer {
   showPlayError() {
     console.error("Failed to play audio");
     const errorMsg =
-      "Unable to play the audio file. Please check if the file exists.";
+      "Unable to play the audio file. The file may not exist or is corrupted.";
     if (window.mePlayApp && window.mePlayApp.showToast) {
       window.mePlayApp.showToast(errorMsg, "error");
     } else {

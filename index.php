@@ -435,12 +435,13 @@ $current_user = [
                 <div class="table-container">
                   <table class="songs-table" id="songsTable">
                     <thead>
-                      <tr>
-                        <th>Title</th>
-                        <th>Artist</th>
-                        <th>Album</th>
-                        <th>Duration</th>
-                        <th>Actions</th>
+                       <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th>Duration</th>
+                    <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -601,69 +602,6 @@ $current_user = [
         });
     }
 });
-    </script>
-    <script>
-// DEBUG SCRIPT - Tambahkan ini
-console.log('🔧 DEBUG: Checking modal functionality...');
-
-// Test manual function
-window.debugAddSong = function() {
-    console.log('🧪 Manual debug function called');
-    
-    // Check if modal exists
-    const modal = document.getElementById('addSongModal');
-    console.log('📱 Modal element:', modal);
-    
-    // Check if save button exists
-    const saveBtn = document.getElementById('saveSongBtn');
-    console.log('💾 Save button:', saveBtn);
-    
-    // Check if app is loaded
-    console.log('🎵 MePlayApp:', window.mePlayApp);
-    
-    // Test show modal
-    if (modal) {
-        modal.style.display = 'flex';
-        console.log('✅ Modal shown manually');
-    }
-};
-
-// Check DOM on load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏠 DOM loaded - checking elements:');
-    
-    const addSongBtn = document.getElementById('addSongBtn');
-    console.log('🎵 Add Song Button:', addSongBtn);
-    
-    const modal = document.getElementById('addSongModal');
-    console.log('📱 Modal:', modal);
-    
-    const saveBtn = document.getElementById('saveSongBtn');
-    console.log('💾 Save Button:', saveBtn);
-    
-    // Add direct click listener for testing
-    if (addSongBtn) {
-        addSongBtn.addEventListener('click', function() {
-            console.log('🎵 DIRECT CLICK: Add Song Button clicked!');
-            const modal = document.getElementById('addSongModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('✅ Modal shown via direct click');
-            }
-        });
-    }
-    
-    if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-            console.log('💾 DIRECT CLICK: Save Button clicked!');
-            const title = document.getElementById('songTitle')?.value;
-            console.log('📝 Title value:', title);
-            alert('DIRECT TEST: Would save song: ' + title);
-        });
-    }
-});
-
-console.log('💡 Type debugAddSong() in console to test manually');
-</script>
+    </script
   </body>
 </html>
