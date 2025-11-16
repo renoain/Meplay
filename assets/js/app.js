@@ -18,13 +18,10 @@ class MePlayApp {
   async initializeApp() {
     console.log("🎵 Initializing MePlay App...");
 
-    // Load songs dari database
     await this.loadSongs();
 
-    // Load liked songs
     await this.loadLikedSongs();
 
-    // Initialize managers
     this.initializeManagers();
 
     this.setupEventListeners();
@@ -75,18 +72,25 @@ class MePlayApp {
     try {
       console.log("🔄 Loading liked songs...");
 
-      // Coba load dari database terlebih dahulu
-      const dbSuccess = await this.loadLikedSongsFromDatabase();
+      // Method loadLikedSongsFromDatabase tidak ada, jadi langsung panggil API
+      const response = await fetch("api/likes.php?action=get_liked_songs");
 
-      if (dbSuccess) {
-        console.log(
-          "✅ Loaded liked songs from database:",
-          this.likedSongs.size
-        );
-        return;
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Convert array of songs to Set of song IDs
+          this.likedSongs = new Set(
+            result.data.map((song) => song.id.toString())
+          );
+          console.log(
+            "✅ Loaded liked songs from database:",
+            this.likedSongs.size
+          );
+          return;
+        }
       }
 
-      // Fallback ke localStorage
+      // Fallback ke localStorage jika database gagal
       console.log("🔄 Falling back to localStorage for liked songs");
       await this.loadLikedSongsFromLocalStorage();
     } catch (error) {
@@ -159,10 +163,52 @@ class MePlayApp {
 
       // Check if response is OK
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error message from response
+        const errorText = await response.text();
+        console.error("❌ HTTP error response:", errorText);
+
+        // Try to parse as JSON, if fails use text
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(
+            errorJson.message || `HTTP error! status: ${response.status}`
+          );
+        } catch (e) {
+          throw new Error(
+            `HTTP error! status: ${
+              response.status
+            }. Response: ${errorText.substring(0, 100)}`
+          );
+        }
       }
 
-      result = await response.json();
+      // Get response text and try to parse as JSON
+      const responseText = await response.text();
+      console.log("📄 Raw response:", responseText);
+
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("❌ JSON parse error:", parseError);
+        console.error("📄 Response that failed to parse:", responseText);
+
+        // Try to extract JSON from response if it contains HTML
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            result = JSON.parse(jsonMatch[0]);
+            console.log("✅ Extracted JSON from response");
+          } catch (e) {
+            throw new Error(
+              "Invalid JSON in response: " + responseText.substring(0, 200)
+            );
+          }
+        } else {
+          throw new Error(
+            "No valid JSON found in response: " + responseText.substring(0, 200)
+          );
+        }
+      }
 
       if (result.success) {
         if (wasLiked) {
@@ -184,7 +230,7 @@ class MePlayApp {
 
         console.log(`❤️ Song ${songIdStr} ${wasLiked ? "unliked" : "liked"}`);
       } else {
-        throw new Error(result.message || "Unknown error");
+        throw new Error(result.message || "Unknown error from server");
       }
     } catch (error) {
       console.error("❌ Error toggling like:", error);
@@ -200,7 +246,7 @@ class MePlayApp {
 
       this.showToast(
         wasLiked ? "💔 Removed from liked songs" : "❤️ Added to liked songs",
-        "success"
+        wasLiked ? "success" : "success" // Always show success for fallback
       );
     }
   }
@@ -251,20 +297,35 @@ class MePlayApp {
     try {
       console.log("🔄 Loading songs...");
 
-      // Try database first
-      const dbSuccess = await this.loadSongsFromDatabase();
+      // Try database first - GUNAKAN loadSongsFromDatabase() yang sudah ada
+      const response = await fetch("api/songs.php?action=get_songs");
 
-      if (dbSuccess && this.songs.length > 0) {
-        console.log("✅ Loaded songs from database:", this.songs.length);
-        return;
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          this.songs = result.data.map((song) => {
+            return {
+              id: song.id.toString(),
+              title: song.title || "Unknown Title",
+              artist: song.artist || "Unknown Artist",
+              album: song.album || "",
+              genre: song.genre || "",
+              duration: song.duration || "0:00",
+              file_path: song.file_path || "",
+              cover_path: song.cover_path || "assets/images/default-cover.jpg",
+              created_at: song.created_at || new Date().toISOString(),
+            };
+          });
+          console.log("✅ Loaded songs from database:", this.songs.length);
+          return;
+        }
       }
 
       // Fallback to JSON file
       console.log("🔄 Loading from JSON file...");
-      const response = await fetch("data/songs.json");
-
-      if (response.ok) {
-        const data = await response.json();
+      const jsonResponse = await fetch("data/songs.json");
+      if (jsonResponse.ok) {
+        const data = await jsonResponse.json();
         this.songs = data.songs || data;
         console.log("✅ Loaded songs from JSON:", this.songs.length);
       } else {

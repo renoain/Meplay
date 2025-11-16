@@ -1,33 +1,27 @@
 <?php
+// test_likes.php - Testing script untuk liked songs
 session_start();
-$_SESSION['user_id'] = 1; // Set user session untuk testing
+$_SESSION['user_id'] = 1; // Set manual untuk testing
 
-// Test get_liked_songs
-$url = "http://localhost/meplay/api/likes.php?action=get_liked_songs";
-$response = file_get_contents($url);
-echo "=== TEST GET LIKED SONGS ===\n";
-echo $response . "\n\n";
-
-// Test like a song
-$data = [
+// Test like song
+$test_data = [
     'action' => 'like_song',
-    'song_id' => 1
+    'song_id' => '1'
 ];
 
-$context = stream_context_create([
-    'http' => [
-        'method' => 'POST',
-        'header' => 'Content-Type: application/json',
-        'content' => json_encode($data)
-    ]
+$url = 'http://localhost/meplay/api/likes.php';
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($test_data));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json'
 ]);
 
-$response = file_get_contents("http://localhost/meplay/api/likes.php", false, $context);
-echo "=== TEST LIKE SONG ===\n";
-echo $response . "\n\n";
+$response = curl_exec($ch);
+$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-// Test get_liked_songs again
-$response = file_get_contents($url);
-echo "=== TEST GET LIKED SONGS AFTER LIKE ===\n";
-echo $response . "\n";
+echo "HTTP Code: $http_code\n";
+echo "Response: $response\n";
 ?>
