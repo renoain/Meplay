@@ -1,6 +1,3 @@
-// Auth JS - MePlay
-// Hanya handle UI, tidak ada redirect ke .html
-
 class AuthManager {
   constructor() {
     this.init();

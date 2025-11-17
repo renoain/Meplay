@@ -65,7 +65,7 @@ class SearchManager {
 
     // Validasi songs data
     if (!window.mePlayApp || !window.mePlayApp.songs) {
-      console.error("❌ Songs data not available");
+      console.error(" Songs data not available");
       this.showSearchError("Songs data not loaded yet");
       return;
     }
@@ -113,7 +113,7 @@ class SearchManager {
       // Jika tidak ada query tapi ada genre filter, show all songs in that genre
       this.showAllSongsByGenre(genre);
     } else {
-      // Jika genre di-set ke "All Genres", clear results
+      // Jika genre di-set ke All Genres, clear results
       this.clearSearchResults();
     }
   }
@@ -136,7 +136,7 @@ class SearchManager {
     const gridElement = document.getElementById("searchResultsGrid");
 
     if (!searchTitle || !gridElement) {
-      console.error("❌ Search UI elements not found");
+      console.error(" Search UI elements not found");
       return;
     }
 
@@ -201,7 +201,7 @@ class SearchManager {
   showGenreFilter() {
     const container = document.getElementById("genreFilterContainer");
     if (!container) {
-      console.error("❌ Genre filter container not found");
+      console.error(" Genre filter container not found");
       return;
     }
 
@@ -215,7 +215,7 @@ class SearchManager {
   populateGenreOptions() {
     const select = document.getElementById("genreFilterSelect");
     if (!select) {
-      console.error("❌ Genre filter select not found");
+      console.error(" Genre filter select not found");
       return;
     }
 

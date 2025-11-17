@@ -1,16 +1,13 @@
 <?php
-// register.php - CLEAR SESSION SETIAP KALI MASUK REGISTER
 session_start();
 session_destroy();
 $_SESSION = array();
 
-// Database configuration
 $host = "localhost";
 $db_name = "meplay_db";
 $username = "root";
 $password = "";
 
-// Try database connection
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -86,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// If already logged in, redirect to index
+// kalo udah login remembeer me masuk ke index hapus aja gajalan kalo debug
 if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
     exit();

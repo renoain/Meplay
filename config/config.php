@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Database configuration
 $host = 'localhost';
 $dbname = 'meplay_db';
 $username = 'root';
@@ -18,7 +17,7 @@ try {
 
 // Set default user session untuk testing (HAPUS INI DI PRODUCTION)
 if (!isset($_SESSION['user_id'])) {
-    $_SESSION['user_id'] = 1; // Default user ID
+    $_SESSION['user_id'] = 1; 
     $_SESSION['username'] = 'user1';
     $_SESSION['user_role'] = 'user';
     $_SESSION['display_name'] = 'User One';

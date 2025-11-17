@@ -1,7 +1,6 @@
 <?php
 require_once 'config/config.php';
 
-// REQUIRE LOGIN - Redirect ke login jika belum login
 requireAuth();
 
 $current_user = [
@@ -16,7 +15,7 @@ $current_user = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MePlay - Your Music Player</title>
+    <title>MePlay</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -25,7 +24,6 @@ $current_user = [
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
     />
-    <!-- Toastify CSS & JS -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
@@ -494,89 +492,88 @@ $current_user = [
         </div>
       </div>
 
-      <!-- Audio Player -->
-      <div class="audio-player" id="audioPlayer">
-        <div class="player-container">
-          <!-- Now Playing Info -->
-          <div class="now-playing">
-            <div class="track-info">
-              <img
-                id="currentCover"
-                src="assets/images/default-cover.jpg"
-                alt="Now Playing"
-                class="now-playing-cover"
-              />
-              <div class="track-details">
-                <div id="currentTitle" class="track-title">Not playing</div>
-                <div id="currentArtist" class="track-artist">
-                  Select a song to play
-                </div>
-              </div>
-              <button class="btn-like-track" id="playerLikeBtn">
-                <i class="bi bi-heart"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Player Controls -->
-          <div class="player-controls">
-            <div class="control-buttons">
-              <button class="btn-control" id="shuffleBtn">
-                <i class="bi bi-shuffle"></i>
-              </button>
-              <button class="btn-control" id="prevBtn">
-                <i class="bi bi-skip-start-fill"></i>
-              </button>
-              <button class="btn-play-pause" id="playPauseBtn">
-                <i class="bi bi-play-fill"></i>
-              </button>
-              <button class="btn-control" id="nextBtn">
-                <i class="bi bi-skip-end-fill"></i>
-              </button>
-              <button class="btn-control" id="repeatBtn">
-                <i class="bi bi-repeat"></i>
-              </button>
-            </div>
-            <div class="progress-container">
-              <span class="time" id="currentTime">0:00</span>
-              <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar">
-                  <div class="progress-fill" id="progressFill"></div>
-                </div>
-              </div>
-              <span class="time" id="duration">0:00</span>
-            </div>
-          </div>
-
-          <!-- Extra Controls -->
-          <div class="extra-controls">
-            <button class="btn-control" id="addToPlaylistBtn">
-              <i class="bi bi-plus-square"></i>
-            </button>
-            <button class="btn-control btn-queue" id="queueBtn">
-              <div class="queue-indicator">
-                <i class="bi bi-music-note-list"></i>
-                <span class="queue-badge" id="queueBadge">0</span>
-              </div>
-            </button>
-            <button class="btn-control" id="volumeBtn">
-              <i class="bi bi-volume-up-fill"></i>
-            </button>
-            <div class="volume-slider-container">
-              <input
-                type="range"
-                class="volume-slider"
-                id="volumeControl"
-                min="0"
-                max="1"
-                step="0.01"
-                value="0.7"
-              />
-            </div>
-          </div>
+     <!-- Audio Player -->
+<div class="audio-player" id="audioPlayer">
+  <div class="player-container">
+    <div class="now-playing">
+      <div class="track-info">
+        <img
+          id="currentCover"
+          src="assets/images/default-cover.jpg"
+          alt="Now Playing"
+          class="now-playing-cover"
+        />
+        <div class="track-details">
+          <div id="currentTitle" class="track-title">Not playing</div>
+          <div id="currentArtist" class="track-artist">Select a song to play</div>
         </div>
       </div>
     </div>
+    
+    <!-- Like Button Section -->
+    <div class="like-section">
+      <button class="btn-like-track" id="playerLikeBtn">
+        <i class="bi bi-heart"></i>
+      </button>
+    </div>
+
+    <!-- Player Controls -->
+    <div class="player-controls">
+      <div class="control-buttons">
+        <button class="btn-control" id="shuffleBtn">
+          <i class="bi bi-shuffle"></i>
+        </button>
+        <button class="btn-control" id="prevBtn">
+          <i class="bi bi-skip-start-fill"></i>
+        </button>
+        <button class="btn-play-pause" id="playPauseBtn">
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <button class="btn-control" id="nextBtn">
+          <i class="bi bi-skip-end-fill"></i>
+        </button>
+        <button class="btn-control" id="repeatBtn">
+          <i class="bi bi-repeat"></i>
+        </button>
+      </div>
+      <div class="progress-container">
+        <span class="time" id="currentTime">0:00</span>
+        <div class="progress-bar-container">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time" id="duration">0:00</span>
+      </div>
+    </div>
+
+    <!-- Extra Controls -->
+    <div class="extra-controls">
+      <button class="btn-control" id="addToPlaylistBtn">
+        <i class="bi bi-plus-square"></i>
+      </button>
+      <button class="btn-control btn-queue" id="queueBtn">
+        <div class="queue-indicator">
+          <i class="bi bi-music-note-list"></i>
+          <span class="queue-badge" id="queueBadge">0</span>
+        </div>
+      </button>
+      <div class="volume-container">
+        <button class="btn-volume" id="volumeBtn">
+          <i class="bi bi-volume-up"></i>
+        </button>
+        <div class="volume-slider-container">
+          <input
+            type="range"
+            class="volume-slider"
+            id="volumeControl"
+            min="0"
+            max="100"
+            value="70"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
     
 

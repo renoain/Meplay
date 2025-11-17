@@ -6,13 +6,11 @@ if (isset($_GET['logout'])) {
     session_write_close();
 }
 
-// Database configuration
 $host = "localhost";
 $db_name = "meplay_db";
 $username = "root";
 $password = "";
 
-// Try database connection
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -52,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $user_found = true;
                     
                     if (password_verify($password, $user['password'])) {
-                        // Login success - START NEW SESSION
+                        // Login success 
                         session_start();
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['username'] = $user['username'];
@@ -64,13 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 }
             } catch (Exception $e) {
-                // Database error, continue to demo users
+              
             }
         }
         
         // Fallback to demo users if database not working or user not found
         if (!$user_found && isset($demo_users[$username]) && $demo_users[$username]['password'] === $password) {
-            // Login success with demo user - START NEW SESSION
             session_start();
             $_SESSION['user_id'] = 1;
             $_SESSION['username'] = $username;
@@ -166,7 +163,6 @@ if (isset($_SESSION['user_id'])) {
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Simple form enhancement
       document.getElementById('loginForm')?.addEventListener('submit', function(e) {
         const submitBtn = this.querySelector('button[type="submit"]');
         if (submitBtn) {
@@ -175,7 +171,6 @@ if (isset($_SESSION['user_id'])) {
         }
       });
 
-      // Add spin animation
       const style = document.createElement('style');
       style.textContent = `
         .spin {

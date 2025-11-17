@@ -1,19 +1,16 @@
 <?php
 session_start();
 
-// Set headers untuk JSON response
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Database configuration
 $host = 'localhost';
 $dbname = 'meplay_db';
 $username = 'root';
@@ -96,7 +93,7 @@ try {
     echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
 }
 
-// ========== HANDLER FUNCTIONS ==========
+//  HANDLER FUNCTIONS 
 
 function handleLikeSong($pdo, $user_id, $input) {
     if (empty($input['song_id'])) {

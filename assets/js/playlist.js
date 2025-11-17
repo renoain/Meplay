@@ -10,7 +10,7 @@ class PlaylistManager {
 
   async loadUserPlaylists() {
     try {
-      console.log("🔄 Loading user playlists...");
+      console.log(" Loading user playlists...");
       const response = await fetch("api/playlists.php?action=get_playlists");
 
       if (!response.ok) {
@@ -22,13 +22,13 @@ class PlaylistManager {
       if (result.success) {
         this.playlists = result.data;
         this.renderSidebarPlaylists();
-        console.log("✅ Loaded user playlists:", this.playlists.length);
+        console.log(" Loaded user playlists:", this.playlists.length);
       } else {
-        console.error("❌ Failed to load playlists:", result.message);
+        console.error(" Failed to load playlists:", result.message);
         this.playlists = [];
       }
     } catch (error) {
-      console.error("❌ Error loading playlists:", error);
+      console.error(" Error loading playlists:", error);
       this.playlists = [];
     }
   }
@@ -48,13 +48,13 @@ class PlaylistManager {
       const result = await response.json();
 
       if (result.success) {
-        await this.loadUserPlaylists(); // Reload playlists
+        await this.loadUserPlaylists();
         return result;
       } else {
         throw new Error(result.message);
       }
     } catch (error) {
-      console.error("❌ Error creating playlist:", error);
+      console.error(" Error creating playlist:", error);
       throw error;
     }
   }
@@ -77,13 +77,13 @@ class PlaylistManager {
       const result = await response.json();
 
       if (result.success) {
-        await this.loadUserPlaylists(); // Reload playlists
+        await this.loadUserPlaylists();
         return result;
       } else {
         throw new Error(result.message);
       }
     } catch (error) {
-      console.error("❌ Error deleting playlist:", error);
+      console.error(" Error deleting playlist:", error);
       throw error;
     }
   }
@@ -103,7 +103,7 @@ class PlaylistManager {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("❌ Error adding song to playlist:", error);
+      console.error(" Error adding song to playlist:", error);
       throw error;
     }
   }
@@ -123,7 +123,7 @@ class PlaylistManager {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("❌ Error removing song from playlist:", error);
+      console.error(" Error removing song from playlist:", error);
       throw error;
     }
   }
@@ -143,11 +143,11 @@ class PlaylistManager {
       if (result.success) {
         return result.data;
       } else {
-        console.error("❌ Failed to load playlist songs:", result.message);
+        console.error(" Failed to load playlist songs:", result.message);
         return [];
       }
     } catch (error) {
-      console.error("❌ Error loading playlist songs:", error);
+      console.error(" Error loading playlist songs:", error);
       return [];
     }
   }
@@ -201,7 +201,7 @@ class PlaylistManager {
     const modal = document.getElementById("addToPlaylistModal");
 
     if (!modal) {
-      console.error("❌ Add to playlist modal not found");
+      console.error(" Add to playlist modal not found");
       return;
     }
 
@@ -267,7 +267,7 @@ class PlaylistManager {
 
   async addToPlaylistHandler(playlistId) {
     if (!this.songToAdd) {
-      console.error("❌ No song selected to add");
+      console.error(" No song selected to add");
       return;
     }
 
@@ -289,7 +289,7 @@ class PlaylistManager {
         }
       }
     } catch (error) {
-      console.error("❌ Error adding to playlist:", error);
+      console.error(" Error adding to playlist:", error);
       if (window.mePlayApp) {
         window.mePlayApp.showToast("Error adding song to playlist", "error");
       }

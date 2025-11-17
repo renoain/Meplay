@@ -6,10 +6,8 @@ class GenreManager {
   }
 
   setupGenreNavigation() {
-    // Add genre section to home view
     this.addGenreSectionToHome();
 
-    // Setup genre filter in search
     this.setupGenreFilter();
   }
 
@@ -76,7 +74,6 @@ class GenreManager {
 
       this.genres.get(genre).songs.push(song);
 
-      // Update cover if this song has a better one
       const genreData = this.genres.get(genre);
       if (
         song.cover_path &&
@@ -142,7 +139,6 @@ class GenreManager {
     const grid = document.getElementById("genresGrid");
     if (!grid) return;
 
-    // Genre card click - show genre detail
     grid.querySelectorAll(".genre-card").forEach((card) => {
       card.addEventListener("click", (e) => {
         if (!e.target.closest(".play-button")) {
@@ -346,8 +342,8 @@ class GenreManager {
     }
   }
 
+  // Add genre filter to search view
   setupGenreFilter() {
-    // Add genre filter to search view
     const searchView = document.getElementById("searchView");
     if (searchView) {
       const searchTitle = searchView.querySelector(".search-title");
@@ -368,7 +364,6 @@ class GenreManager {
     }
   }
 
-  // ======== METHOD YANG DIPERBAIKI ========
   showGenreFilter() {
     const container = document.getElementById("genreFilterContainer");
     const select = document.getElementById("genreFilterSelect");
@@ -389,7 +384,6 @@ class GenreManager {
     container.style.display = "block";
     console.log("✅ Genre filter shown with", this.genres.size, "genres");
 
-    // ======== PERBAIKAN: Clear existing event listeners ========
     select.replaceWith(select.cloneNode(true));
     const newSelect = document.getElementById("genreFilterSelect");
 
@@ -400,7 +394,6 @@ class GenreManager {
     });
   }
 
-  // ======== METHOD YANG DIPERBAIKI ========
   filterSearchResults(genre) {
     const searchInput = document.getElementById("searchInput");
     if (!searchInput) return;

@@ -226,40 +226,53 @@ body {
   color: var(--text-primary);
 }
 
-/* Tracks Grid */
+/* TRACK CARD STYLES */
 .tracks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
 }
 
 .track-card {
   background: var(--card-background);
-  border-radius: var(--border-radius);
-  padding: 15px;
+  border-radius: 12px;
+  padding: 16px;
   transition: all 0.3s ease;
-  cursor: pointer;
+  border: 1px solid transparent;
   position: relative;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .track-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary-blue);
   background: #282828;
-  transform: translateY(-5px);
 }
 
 .track-image {
   position: relative;
-  margin-bottom: 15px;
-  border-radius: 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #282828, #181818);
 }
 
 .track-cover {
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   object-fit: cover;
-  border-radius: 4px;
+  transition: transform 0.3s ease;
 }
 
+.track-card:hover .track-cover {
+  transform: scale(1.05);
+}
+
+/* Play Button */
 .play-button {
   position: absolute;
   bottom: 8px;
@@ -274,7 +287,11 @@ body {
   opacity: 0;
   transform: translateY(8px);
   transition: all 0.3s ease;
+  border: none;
+  color: #000;
+  cursor: pointer;
   z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .track-card:hover .play-button {
@@ -282,13 +299,17 @@ body {
   transform: translateY(0);
 }
 
+.play-button:hover {
+  transform: scale(1.1);
+  background: var(--accent-blue);
+}
+
 .play-button i {
-  color: #000;
   font-size: 16px;
   margin-left: 2px;
 }
 
-/* Track Dropdown - FIXED */
+/* Track Dropdown */
 .track-dropdown {
   position: absolute;
   top: 8px;
@@ -309,6 +330,7 @@ body {
   transition: all 0.3s ease;
   opacity: 0;
   color: white;
+  backdrop-filter: blur(10px);
 }
 
 .track-card:hover .track-dropdown-btn {
@@ -332,11 +354,11 @@ body {
   border: 1px solid #282828;
   z-index: 1000;
   margin-top: 8px;
+  animation: dropdownFadeIn 0.2s ease;
 }
 
 .track-dropdown-content.show {
   display: block;
-  animation: dropdownFadeIn 0.2s ease;
 }
 
 @keyframes dropdownFadeIn {
@@ -364,6 +386,7 @@ body {
   text-align: left;
   cursor: pointer;
   font-size: 0.9rem;
+  border-radius: 4px;
 }
 
 .track-dropdown-item:hover {
@@ -385,39 +408,75 @@ body {
   margin: 4px 0;
 }
 
+/* Track Info */
 .track-info {
-  min-height: 60px;
-  position: relative;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .track-title {
-  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--text-primary);
+  font-size: 14px;
   line-height: 1.3;
+  color: var(--text-primary);
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6em;
 }
 
 .track-artist {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.song-added-by {
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  margin-top: 4px;
-  display: block;
+.track-album {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-genre {
+  font-size: 11px;
+  color: var(--primary-blue);
+  background: rgba(30, 144, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 500;
+  border: 1px solid rgba(30, 144, 255, 0.2);
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+}
+
+.empty-state h3 {
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-size: 1.2rem;
 }
 
 /* Playlist Header */
@@ -744,6 +803,7 @@ body {
 .song-title {
   font-weight: 600;
   color: white;
+  font-size: 14px;
 }
 
 .song-artist {
@@ -767,10 +827,9 @@ body {
   height: 16px;
   font-size: 0.7rem;
   font-weight: 700;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  display: none;
 }
 
 .queue-badge.show {
@@ -852,6 +911,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
 }
 
 .queue-item-artist {
@@ -911,17 +971,6 @@ body {
   margin-bottom: 20px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text-secondary);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
 /* Library Content */
 .library-content {
   padding: 20px 0;
@@ -975,7 +1024,7 @@ body {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: #27ae60;
+  background: #3498db;
   color: white;
   padding: 12px 20px;
   border-radius: 8px;
@@ -1272,7 +1321,7 @@ body {
 
   .tracks-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
+    gap: 16px;
   }
 
   .track-card {
@@ -1337,10 +1386,23 @@ body {
 @media (max-width: 480px) {
   .tracks-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .main-content {
     margin-left: 0;
+  }
+
+  .track-card {
+    padding: 10px;
+  }
+
+  .track-title {
+    font-size: 13px;
+  }
+
+  .track-artist {
+    font-size: 12px;
   }
 }
 
@@ -1358,61 +1420,21 @@ body {
   }
 }
 
-/* Admin styles */
-.songs-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+/* Card hover effects */
+.track-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 12px;
+  pointer-events: none;
 }
 
-.songs-table th,
-.songs-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.songs-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-}
-
-.song-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.song-table-cover {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.btn-table {
-  padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.btn-table.delete {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-table.delete:hover {
-  background-color: #c82333;
-}
-
-.btn-table.edit {
-  background-color: #28a745;
-  color: white;
-  margin-right: 0.5rem;
-}
-
-.btn-table.edit:hover {
-  background-color: #218838;
+.track-card:hover::before {
+  opacity: 1;
 }

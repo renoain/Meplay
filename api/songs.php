@@ -4,13 +4,11 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Database configuration - SESUAIKAN DENGAN ANDA
 $host = 'localhost';
 $dbname = 'meplay_db';
 $username = 'root';
@@ -34,8 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $input = json_decode(file_get_contents('php://input'), true);
     $action = $input['action'] ?? '';
 }
-
-// Process actions
 switch ($action) {
     case 'get_songs':
         getSongs($pdo);
@@ -75,10 +71,8 @@ function getSongs($pdo) {
 }
 
 function addSong($pdo) {
-    // Get input data
     $input = json_decode(file_get_contents('php://input'), true);
     
-    // Check required fields
     if (empty($input['title']) || empty($input['artist']) || empty($input['file_path'])) {
         echo json_encode([
             'success' => false,

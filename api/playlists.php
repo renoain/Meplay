@@ -5,13 +5,11 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Database configuration
 $host = 'localhost';
 $dbname = 'meplay_db';
 $username = 'root';
@@ -85,7 +83,7 @@ try {
                 $stmt->execute([$playlist['id']]);
                 $count = $stmt->fetch(PDO::FETCH_ASSOC);
                 $playlist['song_count'] = $count['song_count'] ?? 0;
-                $playlist['id'] = (string)$playlist['id']; // Convert to string for consistency
+                $playlist['id'] = (string)$playlist['id']; 
             }
             
             echo json_encode([
@@ -211,7 +209,6 @@ try {
             $stmt->execute([$playlist_id]);
             $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Convert IDs to string for consistency
             foreach ($songs as &$song) {
                 $song['id'] = (string)$song['id'];
             }

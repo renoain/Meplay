@@ -16,14 +16,15 @@ class MePlayApp {
   }
 
   async initializeApp() {
-    console.log("🎵 Initializing MePlay App...");
+    console.log(" Initializing MePlay App...");
 
     await this.loadSongs();
-
     await this.loadLikedSongs();
 
-    this.initializeManagers();
+    // Initialize AudioPlayer FIRST before other managers
+    this.initializeAudioPlayer();
 
+    this.initializeManagers();
     this.setupEventListeners();
     this.setupQueueButton();
     this.showView("home");
@@ -31,29 +32,104 @@ class MePlayApp {
     this.setupUserUI();
     this.setupUserDropdown();
 
-    console.log("✅ App initialized successfully");
-    console.log("📊 Loaded songs:", this.songs.length);
-    console.log("❤️ Loaded liked songs:", this.likedSongs.size);
+    console.log(" App initialized successfully");
+    console.log(" Loaded songs:", this.songs.length);
+    console.log(" Loaded liked songs:", this.likedSongs.size);
+  }
+
+  // PERBAIKAN: Initialize AudioPlayer terlebih dahulu
+  initializeAudioPlayer() {
+    if (typeof AudioPlayer !== "undefined") {
+      window.audioPlayer = new AudioPlayer();
+      console.log(
+        " Audio Player initialized with methods:",
+        Object.getOwnPropertyNames(Object.getPrototypeOf(window.audioPlayer))
+      );
+    } else {
+      console.error(" AudioPlayer class not found");
+      // Fallback: create minimal audio player
+      this.createFallbackAudioPlayer();
+    }
+  }
+
+  // Fallback audio player jika AudioPlayer tidak tersedia
+  createFallbackAudioPlayer() {
+    console.log(" Creating fallback audio player");
+    window.audioPlayer = {
+      audio: new Audio(),
+      currentSong: null,
+      isPlaying: false,
+
+      playSong: function (filePath, track = null) {
+        return new Promise((resolve, reject) => {
+          try {
+            console.log(" Fallback player playing:", filePath);
+            this.audio.src = filePath;
+            this.currentSong = track;
+
+            this.audio
+              .play()
+              .then(() => {
+                this.isPlaying = true;
+                console.log(" Fallback player started");
+                resolve();
+              })
+              .catch((error) => {
+                console.error(" Fallback player error:", error);
+                reject(error);
+              });
+          } catch (error) {
+            console.error(" Fallback player exception:", error);
+            reject(error);
+          }
+        });
+      },
+
+      togglePlay: function () {
+        if (this.isPlaying) {
+          this.audio.pause();
+          this.isPlaying = false;
+        } else {
+          this.audio
+            .play()
+            .then(() => {
+              this.isPlaying = true;
+            })
+            .catch((error) => {
+              console.error(" Toggle play error:", error);
+            });
+        }
+      },
+
+      setVolume: function (volume) {
+        this.audio.volume = volume / 100;
+      },
+
+      // Method tambahan untuk kompatibilitas
+      play: function () {
+        return this.audio.play();
+      },
+
+      pause: function () {
+        this.audio.pause();
+        this.isPlaying = false;
+      },
+    };
+    console.log(" Fallback audio player created");
   }
 
   initializeManagers() {
     // Playlist Manager
     if (typeof PlaylistManager !== "undefined") {
       window.playlistManager = new PlaylistManager();
-      console.log("✅ Playlist Manager initialized");
-    }
-
-    // Audio Player
-    if (typeof AudioPlayer !== "undefined") {
-      window.audioPlayer = new AudioPlayer();
-      console.log("✅ Audio Player initialized");
+      console.log(" Playlist Manager initialized");
     }
 
     // Search Manager
     setTimeout(() => {
       if (typeof SearchManager !== "undefined") {
         window.searchManager = new SearchManager();
-        console.log("✅ Search Manager initialized");
+        console.log(" Search Manager initialized");
       }
     }, 500);
 
@@ -61,40 +137,35 @@ class MePlayApp {
     setTimeout(() => {
       if (typeof GenreManager !== "undefined") {
         window.genreManager = new GenreManager();
-        console.log("✅ Genre Manager initialized");
+        console.log(" Genre Manager initialized");
       }
     }, 1000);
   }
 
-  // ========== LIKED SONGS SYSTEM ==========
-
+  // LIKED SONGS SYSTEM
   async loadLikedSongs() {
     try {
-      console.log("🔄 Loading liked songs...");
-
-      // Method loadLikedSongsFromDatabase tidak ada, jadi langsung panggil API
+      console.log(" Loading liked songs...");
       const response = await fetch("api/likes.php?action=get_liked_songs");
 
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          // Convert array of songs to Set of song IDs
           this.likedSongs = new Set(
             result.data.map((song) => song.id.toString())
           );
           console.log(
-            "✅ Loaded liked songs from database:",
+            " Loaded liked songs from database:",
             this.likedSongs.size
           );
           return;
         }
       }
 
-      // Fallback ke localStorage jika database gagal
-      console.log("🔄 Falling back to localStorage for liked songs");
+      console.log(" Falling back to localStorage for liked songs");
       await this.loadLikedSongsFromLocalStorage();
     } catch (error) {
-      console.error("❌ Error loading liked songs:", error);
+      console.error(" Error loading liked songs:", error);
       await this.loadLikedSongsFromLocalStorage();
     }
   }
@@ -106,7 +177,7 @@ class MePlayApp {
         const likedIds = JSON.parse(stored);
         this.likedSongs = new Set(likedIds);
         console.log(
-          "❤️ Loaded liked songs from localStorage:",
+          " Loaded liked songs from localStorage:",
           this.likedSongs.size
         );
       } else {
@@ -114,7 +185,7 @@ class MePlayApp {
         this.likedSongs = new Set();
       }
     } catch (e) {
-      console.error("❌ Error parsing localStorage liked songs:", e);
+      console.error(" Error parsing localStorage liked songs:", e);
       this.likedSongs = new Set();
     }
   }
@@ -124,7 +195,7 @@ class MePlayApp {
       const likedArray = Array.from(this.likedSongs);
       localStorage.setItem("meplay_liked_songs", JSON.stringify(likedArray));
     } catch (error) {
-      console.error("❌ Error saving liked songs:", error);
+      console.error(" Error saving liked songs:", error);
     }
   }
 
@@ -140,7 +211,6 @@ class MePlayApp {
       let response, result;
 
       if (wasLiked) {
-        // Unlike song
         response = await fetch("api/likes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -150,7 +220,6 @@ class MePlayApp {
           }),
         });
       } else {
-        // Like song
         response = await fetch("api/likes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -161,13 +230,9 @@ class MePlayApp {
         });
       }
 
-      // Check if response is OK
       if (!response.ok) {
-        // Try to get error message from response
         const errorText = await response.text();
-        console.error("❌ HTTP error response:", errorText);
-
-        // Try to parse as JSON, if fails use text
+        console.error(" HTTP error response:", errorText);
         try {
           const errorJson = JSON.parse(errorText);
           throw new Error(
@@ -182,22 +247,20 @@ class MePlayApp {
         }
       }
 
-      // Get response text and try to parse as JSON
       const responseText = await response.text();
-      console.log("📄 Raw response:", responseText);
+      console.log(" Raw response:", responseText);
 
       try {
         result = JSON.parse(responseText);
       } catch (parseError) {
-        console.error("❌ JSON parse error:", parseError);
-        console.error("📄 Response that failed to parse:", responseText);
+        console.error(" JSON parse error:", parseError);
+        console.error(" Response that failed to parse:", responseText);
 
-        // Try to extract JSON from response if it contains HTML
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             result = JSON.parse(jsonMatch[0]);
-            console.log("✅ Extracted JSON from response");
+            console.log(" Extracted JSON from response");
           } catch (e) {
             throw new Error(
               "Invalid JSON in response: " + responseText.substring(0, 200)
@@ -216,26 +279,23 @@ class MePlayApp {
         } else {
           this.likedSongs.add(songIdStr);
         }
-        this.saveLikedSongs(); // Update localStorage sebagai backup
+        this.saveLikedSongs();
 
-        // Update UI
         this.updateLikeButtonUI(songIdStr, button);
         this.refreshAllLikeStatuses();
 
-        // Show toast notification
         this.showToast(
-          wasLiked ? "💔 Removed from liked songs" : "❤️ Added to liked songs",
+          wasLiked ? "Removed from liked songs" : " Added to liked songs",
           "success"
         );
 
-        console.log(`❤️ Song ${songIdStr} ${wasLiked ? "unliked" : "liked"}`);
+        console.log(` Song ${songIdStr} ${wasLiked ? "unliked" : "liked"}`);
       } else {
         throw new Error(result.message || "Unknown error from server");
       }
     } catch (error) {
-      console.error("❌ Error toggling like:", error);
+      console.error(" Error toggling like:", error);
 
-      // Fallback: use localStorage only
       if (wasLiked) {
         this.likedSongs.delete(songIdStr);
       } else {
@@ -245,8 +305,8 @@ class MePlayApp {
       this.updateLikeButtonUI(songIdStr, button);
 
       this.showToast(
-        wasLiked ? "💔 Removed from liked songs" : "❤️ Added to liked songs",
-        wasLiked ? "success" : "success" // Always show success for fallback
+        wasLiked ? " Removed from liked songs" : " Added to liked songs",
+        "success"
       );
     }
   }
@@ -262,7 +322,6 @@ class MePlayApp {
       button.classList.toggle("liked", isLiked);
     }
 
-    // Update player like button if this is the current song
     if (
       window.audioPlayer &&
       window.audioPlayer.currentSong &&
@@ -273,7 +332,6 @@ class MePlayApp {
   }
 
   refreshAllLikeStatuses() {
-    // Update all like buttons in track cards
     document.querySelectorAll(".toggle-like").forEach((button) => {
       const songId = button.dataset.songId;
       if (songId) {
@@ -281,7 +339,6 @@ class MePlayApp {
       }
     });
 
-    // Update liked songs view if active
     if (this.currentView === "liked") {
       this.showLikedSongs();
     }
@@ -291,13 +348,11 @@ class MePlayApp {
     return this.songs.filter((song) => this.likedSongs.has(song.id.toString()));
   }
 
-  // ========== SONG LOADING ==========
-
+  // load song
   async loadSongs() {
     try {
-      console.log("🔄 Loading songs...");
+      console.log(" Loading songs...");
 
-      // Try database first - GUNAKAN loadSongsFromDatabase() yang sudah ada
       const response = await fetch("api/songs.php?action=get_songs");
 
       if (response.ok) {
@@ -316,32 +371,30 @@ class MePlayApp {
               created_at: song.created_at || new Date().toISOString(),
             };
           });
-          console.log("✅ Loaded songs from database:", this.songs.length);
+          console.log(" Loaded songs from database:", this.songs.length);
           return;
         }
       }
 
-      // Fallback to JSON file
-      console.log("🔄 Loading from JSON file...");
+      console.log(" Loading from JSON file...");
       const jsonResponse = await fetch("data/songs.json");
       if (jsonResponse.ok) {
         const data = await jsonResponse.json();
         this.songs = data.songs || data;
-        console.log("✅ Loaded songs from JSON:", this.songs.length);
+        console.log(" Loaded songs from JSON:", this.songs.length);
       } else {
         throw new Error("JSON file not found");
       }
     } catch (error) {
-      console.error("❌ Error loading songs:", error);
-      // Ultimate fallback - hardcoded songs
+      console.error(" Error loading songs:", error);
       this.songs = this.getFallbackSongs();
-      console.log("🔄 Using fallback songs:", this.songs.length);
+      console.log(" Using fallback songs:", this.songs.length);
     }
   }
 
   async loadSongsFromDatabase() {
     try {
-      console.log("🔄 Loading songs from database...");
+      console.log(" Loading songs from database...");
 
       const response = await fetch("api/songs.php?action=get_songs");
 
@@ -367,7 +420,7 @@ class MePlayApp {
         });
 
         console.log(
-          "✅ SUCCESS: Loaded",
+          " SUCCESS: Loaded",
           this.songs.length,
           "songs from database"
         );
@@ -376,7 +429,7 @@ class MePlayApp {
         throw new Error(result.message || "Invalid data format from server");
       }
     } catch (error) {
-      console.error("❌ ERROR loading songs from database:", error);
+      console.error(" ERROR loading songs from database:", error);
       return false;
     }
   }
@@ -416,33 +469,19 @@ class MePlayApp {
     ];
   }
 
-  // ========== EVENT LISTENERS ==========
-
+  // EVENT LISTENERS
   setupEventListeners() {
     console.log("🔧 Setting up event listeners...");
 
-    // Navigation
     this.setupNavigation();
-
-    // Playlist buttons
     this.setupPlaylistButtons();
-
-    // Admin buttons
     this.setupAdminButtons();
-
-    // Player controls
     this.setupPlayerControls();
-
-    // Queue functionality
     this.setupQueueControls();
-
-    // Modal handlers
     this.setupModalHandlers();
-
-    // Global event listeners
     this.setupGlobalEventListeners();
 
-    console.log("✅ Event listeners setup complete");
+    console.log(" Event listeners setup complete");
   }
 
   setupNavigation() {
@@ -460,7 +499,6 @@ class MePlayApp {
   }
 
   setupPlaylistButtons() {
-    // Create playlist buttons
     const sidebarCreateBtn = document.getElementById("sidebarCreatePlaylist");
     const createPlaylistBtn = document.getElementById("createPlaylistBtn");
 
@@ -478,7 +516,6 @@ class MePlayApp {
       });
     }
 
-    // Play buttons
     const playLikedBtn = document.getElementById("playLikedSongs");
     const playPlaylistBtn = document.getElementById("playPlaylistSongs");
 
@@ -496,7 +533,6 @@ class MePlayApp {
       });
     }
 
-    // Delete playlist
     const deletePlaylistBtn = document.getElementById("deletePlaylistBtn");
     if (deletePlaylistBtn) {
       deletePlaylistBtn.addEventListener("click", (e) => {
@@ -511,7 +547,7 @@ class MePlayApp {
     if (addSongBtn) {
       addSongBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("🎵 Add Song Button CLICKED!");
+        console.log(" Add Song Button CLICKED!");
         this.showAddSongModal();
       });
     }
@@ -524,8 +560,8 @@ class MePlayApp {
     }
   }
 
+  // Play/Pause
   setupPlayerControls() {
-    // Play/Pause
     const playPauseBtn = document.getElementById("playPauseBtn");
     if (playPauseBtn) {
       playPauseBtn.addEventListener("click", () => {
@@ -567,7 +603,11 @@ class MePlayApp {
     const volumeControl = document.getElementById("volumeControl");
     if (volumeControl && window.audioPlayer) {
       volumeControl.addEventListener("input", (e) => {
-        window.audioPlayer.setVolume(e.target.value);
+        if (window.audioPlayer.setVolume) {
+          window.audioPlayer.setVolume(e.target.value);
+        } else if (window.audioPlayer.audio) {
+          window.audioPlayer.audio.volume = e.target.value / 100;
+        }
       });
     }
 
@@ -622,7 +662,6 @@ class MePlayApp {
     const modal = document.getElementById("addToPlaylistModal");
     if (!modal) return;
 
-    // Close modal
     const closeBtn = modal.querySelector(".close-modal");
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
@@ -630,14 +669,12 @@ class MePlayApp {
       });
     }
 
-    // Click outside to close
     modal.addEventListener("click", (e) => {
       if (e.target === modal) {
         modal.style.display = "none";
       }
     });
 
-    // Create new playlist from modal
     const createNewBtn = document.getElementById("createNewPlaylistFromModal");
     if (createNewBtn) {
       createNewBtn.addEventListener("click", () => {
@@ -648,20 +685,17 @@ class MePlayApp {
   }
 
   setupGlobalEventListeners() {
-    // Close dropdowns when clicking outside
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".track-dropdown") && this.currentDropdown) {
         this.currentDropdown.classList.remove("show");
         this.currentDropdown = null;
       }
 
-      // Close user dropdown
       if (!e.target.closest(".user-dropdown")) {
         document.getElementById("userDropdown")?.classList.remove("show");
       }
     });
 
-    // Escape key to close dropdowns
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         document
@@ -674,7 +708,6 @@ class MePlayApp {
       }
     });
 
-    // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
         return;
@@ -717,7 +750,6 @@ class MePlayApp {
         }
       });
 
-      // Logout functionality
       const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
@@ -727,7 +759,6 @@ class MePlayApp {
         });
       }
 
-      // Profile button
       const profileBtn = document.getElementById("profileBtn");
       if (profileBtn) {
         profileBtn.addEventListener("click", (e) => {
@@ -738,7 +769,6 @@ class MePlayApp {
         });
       }
 
-      // Settings button
       const settingsBtn = document.getElementById("settingsBtn");
       if (settingsBtn) {
         settingsBtn.addEventListener("click", (e) => {
@@ -755,7 +785,7 @@ class MePlayApp {
         }
       });
     } else {
-      console.log("❌ User dropdown elements not found");
+      console.log(" User dropdown elements not found");
     }
   }
 
@@ -790,10 +820,9 @@ class MePlayApp {
     }
   }
 
-  // ========== VIEW MANAGEMENT ==========
-
+  // VIEW MANAGEMENT
   showView(viewName) {
-    console.log("🔄 Switching to view:", viewName);
+    console.log(" Switching to view:", viewName);
 
     document.querySelectorAll(".view").forEach((view) => {
       view.classList.remove("active");
@@ -864,8 +893,7 @@ class MePlayApp {
     this.renderSongsTable();
   }
 
-  // ========== SONG MANAGEMENT ==========
-
+  // SONG MANAGEMENT
   setupAddSongModal() {
     const modal = document.getElementById("addSongModal");
     if (!modal) return;
@@ -927,7 +955,7 @@ class MePlayApp {
 
     if (!title || !artist || !audioPath) {
       this.showToast(
-        "❌ Please fill in required fields: Title, Artist, and Audio Path",
+        " Please fill in required fields: Title, Artist, and Audio Path",
         "error"
       );
       return;
@@ -939,7 +967,7 @@ class MePlayApp {
     saveBtn.disabled = true;
 
     try {
-      console.log("🔄 Saving to database...");
+      console.log(" Saving to database...");
 
       const songData = {
         title: title,
@@ -954,19 +982,19 @@ class MePlayApp {
       const success = await this.saveToDatabase(songData);
 
       if (success) {
-        console.log("✅ Song saved to database successfully");
+        console.log(" Song saved to database successfully");
 
         document.getElementById("addSongModal").style.display = "none";
         this.clearAddSongForm();
 
-        this.showToast("🎵 Song added successfully!", "success");
+        this.showToast(" Song added successfully!", "success");
 
         setTimeout(async () => {
-          console.log("🔄 FORCE RELOADING songs from database...");
+          console.log(" FORCE RELOADING songs from database...");
           await this.loadSongsFromDatabase();
 
-          console.log("📊 Songs after reload:", this.songs.length);
-          console.log("🎵 Newest song:", this.songs[0]);
+          console.log(" Songs after reload:", this.songs.length);
+          console.log(" Newest song:", this.songs[0]);
 
           this.updateAllUI();
 
@@ -980,14 +1008,14 @@ class MePlayApp {
             this.loadAdminContent();
           }
 
-          console.log("✅ UI should be updated with new song");
+          console.log(" UI should be updated with new song");
         }, 500);
       } else {
-        this.showToast("❌ Failed to save song to database", "error");
+        this.showToast(" Failed to save song to database", "error");
       }
     } catch (error) {
-      console.error("❌ Error adding song:", error);
-      this.showToast("❌ Error saving song: " + error.message, "error");
+      console.error(" Error adding song:", error);
+      this.showToast(" Error saving song: " + error.message, "error");
     } finally {
       saveBtn.textContent = "Add Song";
       saveBtn.disabled = false;
@@ -996,7 +1024,7 @@ class MePlayApp {
 
   async saveToDatabase(songData) {
     try {
-      console.log("🔄 Saving song to database:", songData);
+      console.log(" Saving song to database:", songData);
 
       const response = await fetch("api/songs.php", {
         method: "POST",
@@ -1009,10 +1037,10 @@ class MePlayApp {
         }),
       });
 
-      console.log("📄 Response status:", response.status);
+      console.log(" Response status:", response.status);
 
       const responseText = await response.text();
-      console.log("📄 Raw response:", responseText);
+      console.log(" Raw response:", responseText);
 
       const cleanResponse = responseText
         .replace(/<script>[\s\S]*?<\/script>/g, "")
@@ -1022,14 +1050,14 @@ class MePlayApp {
       try {
         result = JSON.parse(cleanResponse);
       } catch (parseError) {
-        console.error("❌ JSON parse error:", parseError);
-        console.error("📄 Cleaned response:", cleanResponse);
+        console.error(" JSON parse error:", parseError);
+        console.error(" Cleaned response:", cleanResponse);
 
         const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             result = JSON.parse(jsonMatch[0]);
-            console.log("✅ Extracted JSON from response");
+            console.log(" Extracted JSON from response");
           } catch (e) {
             throw new Error("Invalid JSON in response");
           }
@@ -1038,17 +1066,17 @@ class MePlayApp {
         }
       }
 
-      console.log("📊 Parsed result:", result);
+      console.log(" Parsed result:", result);
 
       if (result.success) {
-        console.log("✅ Song saved to database successfully");
+        console.log(" Song saved to database successfully");
         return true;
       } else {
-        console.error("❌ Server returned error:", result.message);
+        console.error(" Server returned error:", result.message);
         throw new Error(result.message || "Failed to save song");
       }
     } catch (error) {
-      console.error("❌ Database save error:", error);
+      console.error(" Database save error:", error);
 
       let errorMessage = "Failed to save song to database";
       if (error.message.includes("JSON") || error.message.includes("script")) {
@@ -1074,16 +1102,14 @@ class MePlayApp {
     document.getElementById("coverPath").value = "";
   }
 
-  // ========== PLAYBACK SYSTEM ==========
-
   playTrack(tracks, trackIndex, context = "all") {
     if (!tracks[trackIndex]) {
-      console.error("❌ Track not found at index:", trackIndex);
+      console.error(" Track not found at index:", trackIndex);
       return;
     }
 
     const track = tracks[trackIndex];
-    console.log("🎵 Playing track:", track.title, "from:", track.file_path);
+    console.log(" Playing track:", track.title, "from:", track.file_path);
 
     this.currentSongIndex = trackIndex;
     this.currentTrackList = tracks;
@@ -1091,23 +1117,35 @@ class MePlayApp {
 
     this.updatePlayerUI(track);
 
+    // Check if audioPlayer exists and has playSong method
     if (window.audioPlayer) {
-      // Call playSong directly on audioPlayer
-      window.audioPlayer
-        .playSong(track.file_path, track)
-        .then(() => {
-          this.isPlaying = true;
-          this.updatePlayButton();
-          this.updatePlayerLikeButton(track.id);
-          this.addToRecentlyPlayed(track);
-          this.incrementPlayCount(track.id);
-        })
-        .catch((error) => {
-          console.error("❌ Error in playTrack:", error);
-          this.showToast("Error playing song: " + error.message, "error");
-        });
+      console.log(
+        " AudioPlayer available, methods:",
+        Object.getOwnPropertyNames(Object.getPrototypeOf(window.audioPlayer))
+      );
+
+      if (typeof window.audioPlayer.playSong === "function") {
+        window.audioPlayer
+          .playSong(track.file_path, track)
+          .then(() => {
+            this.isPlaying = true;
+            this.updatePlayButton();
+            this.updatePlayerLikeButton(track.id);
+            this.addToRecentlyPlayed(track);
+            this.incrementPlayCount(track.id);
+            console.log(" Track playback started successfully");
+          })
+          .catch((error) => {
+            console.error(" Error in playTrack:", error);
+            this.showToast("Error playing song: " + error.message, "error");
+          });
+      } else {
+        console.error(" playSong method not found in audioPlayer");
+        this.showToast("Audio player not properly initialized", "error");
+      }
     } else {
-      console.error("❌ Audio player not available");
+      console.error(" Audio player not available");
+      this.showToast("Audio player not available", "error");
     }
   }
 
@@ -1140,15 +1178,19 @@ class MePlayApp {
 
     const songId = window.audioPlayer.currentSong.id;
     this.toggleLike(songId);
-
     this.updatePlayerLikeButton(songId);
   }
 
   togglePlayPause() {
-    if (window.audioPlayer) {
+    if (
+      window.audioPlayer &&
+      typeof window.audioPlayer.togglePlay === "function"
+    ) {
       window.audioPlayer.togglePlay();
       this.isPlaying = window.audioPlayer.isPlaying;
       this.updatePlayButton();
+    } else {
+      console.error(" togglePlay method not available");
     }
   }
 
@@ -1162,11 +1204,10 @@ class MePlayApp {
   }
 
   playNext() {
-    console.log("🔊 playNext called - Queue length:", this.queue.length);
+    console.log("playNext called - Queue length:", this.queue.length);
 
-    // Prioritize queue
     if (this.queue.length > 0) {
-      console.log("🎵 Playing from queue");
+      console.log(" Playing from queue");
       this.playFromQueue(0);
       return;
     }
@@ -1176,15 +1217,15 @@ class MePlayApp {
 
       if (this.isShuffled) {
         nextIndex = Math.floor(Math.random() * this.currentTrackList.length);
-        console.log("🔀 Shuffled next index:", nextIndex);
+        console.log(" Shuffled next index:", nextIndex);
       } else {
         nextIndex = (this.currentSongIndex + 1) % this.currentTrackList.length;
-        console.log("➡️ Normal next index:", nextIndex);
+        console.log(" Normal next index:", nextIndex);
       }
 
       this.playTrack(this.currentTrackList, nextIndex);
     } else {
-      console.log("⚠️ No current track or track list");
+      console.log(" No current track or track list");
     }
   }
 
@@ -1206,33 +1247,33 @@ class MePlayApp {
   }
 
   playFromQueue(index) {
-    console.log("🎵 playFromQueue called with index:", index);
+    console.log(" playFromQueue called with index:", index);
 
     if (index >= 0 && index < this.queue.length) {
       const song = this.queue[index];
-      console.log("🎵 Playing from queue:", song.title);
+      console.log(" Playing from queue:", song.title);
 
-      // Remove from queue first
       this.queue.splice(index, 1);
       this.updateQueueUI();
 
-      // Find the song in main songs list
       const songIndex = this.songs.findIndex(
         (s) => s.id.toString() === song.id.toString()
       );
       if (songIndex !== -1) {
-        console.log("✅ Found song in main list, playing...");
+        console.log(" Found song in main list, playing...");
         this.playTrack(this.songs, songIndex, "queue");
       } else {
         console.log(
-          "❌ Song not found in main list, playing directly from queue data"
+          " Song not found in main list, playing directly from queue data"
         );
-        // Fallback: play directly from queue data
         this.currentSongIndex = 0;
         this.currentTrackList = [song];
         this.updatePlayerUI(song);
 
-        if (window.audioPlayer) {
+        if (
+          window.audioPlayer &&
+          typeof window.audioPlayer.playSong === "function"
+        ) {
           window.audioPlayer
             .playSong(song.file_path, song)
             .then(() => {
@@ -1243,14 +1284,14 @@ class MePlayApp {
               this.incrementPlayCount(song.id);
             })
             .catch((error) => {
-              console.error("❌ Error playing from queue:", error);
+              console.error(" Error playing from queue:", error);
             });
         }
       }
 
       document.getElementById("queueModal").style.display = "none";
     } else {
-      console.error("❌ Invalid queue index:", index);
+      console.error(" Invalid queue index:", index);
     }
   }
 
@@ -1261,7 +1302,7 @@ class MePlayApp {
       shuffleBtn.classList.toggle("active", this.isShuffled);
     }
     this.showToast(
-      this.isShuffled ? "🔀 Shuffle enabled" : "🔀 Shuffle disabled",
+      this.isShuffled ? " Shuffle enabled" : " Shuffle disabled",
       "info"
     );
   }
@@ -1290,8 +1331,7 @@ class MePlayApp {
       percentage * window.audioPlayer.audio.duration;
   }
 
-  // ========== QUEUE MANAGEMENT ==========
-
+  // QUEUE MANAGEMENT
   setupQueueButton() {
     this.updateQueueUI();
   }
@@ -1421,8 +1461,7 @@ class MePlayApp {
     });
   }
 
-  // ========== LIKED SONGS VIEW ==========
-
+  // LIKED SONGS VIEW
   showLikedSongs() {
     const likedSongs = this.getLikedSongs();
     this.renderTracksGrid(likedSongs, "likedSongsGrid", "liked");
@@ -1438,13 +1477,11 @@ class MePlayApp {
     }
   }
 
-  // ========== PLAYLIST MANAGEMENT ==========
-
+  // PLAYLIST MANAGEMENT
   setupCreatePlaylistModal() {
     const modal = document.getElementById("createPlaylistModal");
     if (!modal) return;
 
-    // Close modal
     modal.querySelector(".close-modal")?.addEventListener("click", () => {
       modal.style.display = "none";
     });
@@ -1453,7 +1490,6 @@ class MePlayApp {
       modal.style.display = "none";
     });
 
-    // CREATE PLAYLIST - FIXED
     const saveBtn = modal.querySelector("#savePlaylistBtn");
     if (saveBtn) {
       saveBtn.addEventListener("click", async () => {
@@ -1464,11 +1500,11 @@ class MePlayApp {
         const description = descInput?.value.trim();
 
         if (!name) {
-          this.showToast("❌ Playlist name is required", "error");
+          this.showToast(" Playlist name is required", "error");
           return;
         }
 
-        console.log("🔄 Creating playlist:", name);
+        console.log(" Creating playlist:", name);
 
         try {
           const result = await window.playlistManager.createPlaylist(
@@ -1481,13 +1517,13 @@ class MePlayApp {
             nameInput.value = "";
             descInput.value = "";
 
-            this.showToast("✅ Playlist created successfully!", "success");
+            this.showToast(" Playlist created successfully!", "success");
           } else {
-            this.showToast("❌ Failed: " + result.message, "error");
+            this.showToast(" Failed: " + result.message, "error");
           }
         } catch (error) {
-          console.error("❌ Error:", error);
-          this.showToast("❌ Error creating playlist", "error");
+          console.error(" Error:", error);
+          this.showToast(" Error creating playlist", "error");
         }
       });
     }
@@ -1579,7 +1615,6 @@ class MePlayApp {
     if (coverEl)
       coverEl.src = window.playlistManager.generatePlaylistCover(playlist);
 
-    // Load playlist songs
     const playlistSongs = await window.playlistManager.getPlaylistSongs(
       playlistId
     );
@@ -1622,7 +1657,7 @@ class MePlayApp {
           );
         }
       } catch (error) {
-        console.error("❌ Error deleting playlist:", error);
+        console.error(" Error deleting playlist:", error);
         this.showToast("Error deleting playlist", "error");
       }
     }
@@ -1648,7 +1683,7 @@ class MePlayApp {
           this.showToast(result.message || "Failed to remove song", "error");
         }
       } catch (error) {
-        console.error("❌ Error removing from playlist:", error);
+        console.error(" Error removing from playlist:", error);
         this.showToast("Error removing song from playlist", "error");
       }
     }
@@ -1670,28 +1705,27 @@ class MePlayApp {
     }
   }
 
-  // ========== TRACK DISPLAY ==========
-
+  // TRACK DISPLAY
   renderTracksGrid(tracks, containerId, context = "all") {
     const container = document.getElementById(containerId);
     if (!container) {
-      console.error("❌ Container not found:", containerId);
+      console.error(" Container not found:", containerId);
       return;
     }
 
-    console.log(`🔄 Rendering ${tracks.length} tracks to ${containerId}`);
+    console.log(` Rendering ${tracks.length} tracks to ${containerId}`);
 
     if (!tracks || tracks.length === 0) {
       container.innerHTML =
         '<div class="empty-state"><p>No tracks found</p></div>';
-      console.log("⚠️ No tracks to render for", containerId);
+      console.log(" No tracks to render for", containerId);
       return;
     }
 
     container.innerHTML = tracks
       .map((track, index) => {
         if (!track.id || !track.title) {
-          console.warn("⚠️ Invalid track data:", track);
+          console.warn(" Invalid track data:", track);
           return "";
         }
 
@@ -1757,16 +1791,14 @@ class MePlayApp {
       })
       .join("");
 
-    console.log(`✅ Rendered ${tracks.length} tracks to ${containerId}`);
+    console.log(` Rendered ${tracks.length} tracks to ${containerId}`);
 
     this.setupTrackInteractions(container, tracks, context);
   }
 
   setupTrackInteractions(container, tracks, context) {
-    // Track card click - play song
     container.querySelectorAll(".track-card").forEach((card, index) => {
       card.addEventListener("click", (e) => {
-        // Only play if not clicking on dropdown or play button
         if (
           !e.target.closest(".track-dropdown") &&
           !e.target.closest(".play-button")
@@ -1776,7 +1808,6 @@ class MePlayApp {
       });
     });
 
-    // Play button click
     container.querySelectorAll(".play-button").forEach((button, index) => {
       button.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1788,7 +1819,6 @@ class MePlayApp {
   }
 
   setupTrackDropdowns(container, context) {
-    // Dropdown buttons
     container.querySelectorAll(".track-dropdown-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -1796,7 +1826,6 @@ class MePlayApp {
 
         const dropdown = btn.nextElementSibling;
 
-        // Close other dropdowns
         if (this.currentDropdown && this.currentDropdown !== dropdown) {
           this.currentDropdown.classList.remove("show");
         }
@@ -1808,7 +1837,6 @@ class MePlayApp {
       });
     });
 
-    // Add to queue buttons
     container.querySelectorAll(".add-to-queue").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1818,7 +1846,6 @@ class MePlayApp {
       });
     });
 
-    // Like buttons
     container.querySelectorAll(".toggle-like").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1828,7 +1855,6 @@ class MePlayApp {
       });
     });
 
-    // Add to playlist buttons
     container.querySelectorAll(".add-to-playlist").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1838,7 +1864,6 @@ class MePlayApp {
       });
     });
 
-    // Remove from playlist buttons
     if (context === "playlist") {
       container.querySelectorAll(".remove-from-playlist").forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -1858,8 +1883,7 @@ class MePlayApp {
     }
   }
 
-  // ========== ADMIN FEATURES ==========
-
+  // ADMIN FEATURES
   refreshAdminStats() {
     const totalSongs = document.getElementById("totalSongs");
     const totalLikes = document.getElementById("totalLikes");
@@ -1943,7 +1967,6 @@ class MePlayApp {
       if (success) {
         this.songs = this.songs.filter((song) => song.id !== songId);
 
-        // Also remove from liked songs if it was liked
         if (this.likedSongs.has(songId)) {
           this.likedSongs.delete(songId);
           this.saveLikedSongs();
@@ -1958,7 +1981,7 @@ class MePlayApp {
         this.showToast("Failed to delete song from database", "error");
       }
     } catch (error) {
-      console.error("❌ Error deleting song:", error);
+      console.error(" Error deleting song:", error);
       this.showToast("Error deleting song", "error");
     }
   }
@@ -1979,31 +2002,30 @@ class MePlayApp {
       const result = await response.json();
       return result.success === true;
     } catch (error) {
-      console.error("❌ Database delete error:", error);
+      console.error(" Database delete error:", error);
       return false;
     }
   }
 
-  // ========== UTILITY METHODS ==========
-
+  // UTILITY METHODS
   updateAllUI() {
-    console.log("🔄 UPDATING ALL UI COMPONENTS...");
-    console.log("📊 Current songs count:", this.songs.length);
+    console.log(" UPDATING ALL UI COMPONENTS...");
+    console.log(" Current songs count:", this.songs.length);
 
     if (this.songs.length === 0) {
-      console.warn("⚠️ No songs available to display");
+      console.warn(" No songs available to display");
     }
 
     const allSongsGrid = document.getElementById("allSongsGrid");
     if (allSongsGrid) {
-      console.log("🔄 Rendering all songs grid...");
+      console.log(" Rendering all songs grid...");
       this.renderTracksGrid(this.songs, "allSongsGrid", "all");
     }
 
     const recentlyPlayedGrid = document.getElementById("recentlyPlayedGrid");
     if (recentlyPlayedGrid) {
       const recentlyPlayed = this.songs.slice(0, 6);
-      console.log("🔄 Rendering recently played:", recentlyPlayed.length);
+      console.log(" Rendering recently played:", recentlyPlayed.length);
       this.renderTracksGrid(recentlyPlayed, "recentlyPlayedGrid", "recent");
     }
 
@@ -2013,23 +2035,23 @@ class MePlayApp {
     if (this.currentView === "search" && window.searchManager) {
       const searchInput = document.getElementById("searchInput");
       if (searchInput && searchInput.value) {
-        console.log("🔄 Refreshing search results...");
+        console.log(" Refreshing search results...");
         window.searchManager.performSearch(searchInput.value);
       }
     }
 
     if (this.currentView === "liked") {
-      console.log("🔄 Refreshing liked songs...");
+      console.log(" Refreshing liked songs...");
       this.showLikedSongs();
     }
 
     if (this.currentView === "playlistDetail" && this.currentPlaylistId) {
-      console.log("🔄 Refreshing playlist detail...");
+      console.log(" Refreshing playlist detail...");
       this.showPlaylistDetail(this.currentPlaylistId);
     }
 
     if (window.genreManager && this.currentView === "home") {
-      console.log("🔄 Refreshing genres...");
+      console.log(" Refreshing genres...");
       window.genreManager.organizeSongsByGenre();
       window.genreManager.renderGenreGrid();
     }
@@ -2043,7 +2065,7 @@ class MePlayApp {
       });
     }, 100);
 
-    console.log("✅ ALL UI COMPONENTS UPDATED");
+    console.log(" ALL UI COMPONENTS UPDATED");
   }
 
   showToast(message, type = "success") {
@@ -2090,9 +2112,7 @@ class MePlayApp {
     );
 
     recentlyPlayed = recentlyPlayed.filter((id) => id !== song.id);
-
     recentlyPlayed.unshift(song.id);
-
     recentlyPlayed = recentlyPlayed.slice(0, 10);
 
     localStorage.setItem(
